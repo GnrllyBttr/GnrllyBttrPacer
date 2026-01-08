@@ -1,0 +1,28 @@
+name: gnrllybttr_pacer
+description: "TanStack inspired debouncing, throttling, rate limiting, queuing, and batching utilities for Flutter"
+version: 1.0.0
+homepage: https://github.com/GnrllyBttr/GnrllyBttrPacer
+repository: https://github.com/GnrllyBttr/GnrllyBttrPacer
+issue_tracker: https://github.com/GnrllyBttr/GnrllyBttrPacer/issues
+documentation: https://github.com/GnrllyBttr/GnrllyBttrPacer#README
+
+topics:
+  - utilities
+  - performance
+  - throttling
+  - debouncing
+  - rate-limiting
+
+environment:
+  sdk: ^3.0.0
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  test: ^1.24.0
