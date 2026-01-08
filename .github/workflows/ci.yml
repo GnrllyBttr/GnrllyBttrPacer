@@ -11,26 +11,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      - run: flutter --version
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter format --set-exit-if-changed .
+      - name: Install FVM
+        run: |
+          dart pub global activate fvm
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+      - name: Setup Flutter
+        run: fvm install
+      - name: Verify Flutter version
+        run: fvm flutter --version
+      - run: fvm flutter pub get
+      - run: fvm flutter analyze
+      - run: fvm flutter format --set-exit-if-changed .
 
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      - run: flutter --version
-      - run: flutter pub get
-      - run: flutter test --coverage
+      - name: Install FVM
+        run: |
+          dart pub global activate fvm
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+      - name: Setup Flutter
+        run: fvm install
+      - name: Verify Flutter version
+        run: fvm flutter --version
+      - run: fvm flutter pub get
+      - run: fvm flutter test --coverage
       - uses: codecov/codecov-action@v4
         with:
           file: ./coverage/lcov.info
@@ -43,22 +51,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      - run: flutter --version
-      - run: cd example && flutter pub get
-      - run: cd example && flutter analyze
-      - run: cd example && flutter build apk --debug
+      - name: Install FVM
+        run: |
+          dart pub global activate fvm
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+      - name: Setup Flutter
+        run: fvm install
+      - name: Verify Flutter version
+        run: fvm flutter --version
+      - run: cd example && fvm flutter pub get
+      - run: cd example && fvm flutter analyze
+      - run: cd example && fvm flutter build apk --debug
 
   pana:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      - run: flutter pub global activate pana
-      - run: flutter pub global run pana --no-warning
+      - name: Install FVM
+        run: |
+          dart pub global activate fvm
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+      - name: Setup Flutter
+        run: fvm install
+      - name: Verify Flutter version
+        run: fvm flutter --version
+      - run: fvm flutter pub global activate pana
+      - run: fvm flutter pub global run pana --no-warning
