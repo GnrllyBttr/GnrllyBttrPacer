@@ -95,15 +95,14 @@ class SearchWidget extends StatefulWidget {
 
 class _SearchWidgetState extends State<SearchWidget> {
   final TextEditingController _controller = TextEditingController();
-  final Debouncer _debouncer = Debouncer(
-    (args) async {
-      final query = args[0] as String;
+  final Debouncer<String> _debouncer = Debouncer<String>(
+    (query) async {
       if (query.isNotEmpty) {
         final results = await searchAPI(query);
         // Handle search results
       }
     },
-    DebouncerOptions(wait: const Duration(milliseconds: 300)),
+    DebouncerOptions<String>(wait: const Duration(milliseconds: 300)),
   );
 
   @override
@@ -111,7 +110,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     return TextField(
       controller: _controller,
       decoration: const InputDecoration(hintText: 'Search...'),
-      onChanged: (value) => _debouncer.maybeExecute([value]),
+      onChanged: (value) => _debouncer.maybeExecute(value),
     );
   }
 
@@ -133,13 +132,12 @@ class ThrottledButton extends StatefulWidget {
 }
 
 class _ThrottledButtonState extends State<ThrottledButton> {
-  final Throttler _throttler = Throttler(
-    (args) {
-      final count = args[0] as int;
+  final Throttler<int> _throttler = Throttler<int>(
+    (count) {
       debugPrint('Button clicked: $count');
       // Handle button action
     },
-    ThrottlerOptions(
+    ThrottlerOptions<int>(
       wait: const Duration(milliseconds: 1000),
       leading: true,
       trailing: false,
@@ -153,7 +151,7 @@ class _ThrottledButtonState extends State<ThrottledButton> {
     return ElevatedButton(
       onPressed: () {
         _clickCount++;
-        _throttler.maybeExecute([_clickCount]);
+        _throttler.maybeExecute(_clickCount);
       },
       child: const Text('Throttled Button'),
     );
@@ -171,12 +169,11 @@ class _ThrottledButtonState extends State<ThrottledButton> {
 
 ```dart
 class ApiService {
-  final RateLimiter _rateLimiter = RateLimiter(
-    (args) async {
-      final endpoint = args[0] as String;
+  final RateLimiter<String> _rateLimiter = RateLimiter<String>(
+    (endpoint) async {
       return await http.get(Uri.parse('https://api.example.com/$endpoint'));
     },
-    RateLimiterOptions(
+    RateLimiterOptions<String>(
       limit: 10,
       window: const Duration(minutes: 1),
       windowType: WindowType.sliding,
@@ -184,7 +181,7 @@ class ApiService {
   );
 
   Future<http.Response> makeRequest(String endpoint) async {
-    final allowed = _rateLimiter.maybeExecute([endpoint]);
+    final allowed = _rateLimiter.maybeExecute(endpoint);
     if (allowed) {
       return await http.get(Uri.parse('https://api.example.com/$endpoint'));
     } else {
@@ -203,9 +200,8 @@ class TaskQueue extends StatefulWidget {
 }
 
 class _TaskQueueState extends State<TaskQueue> {
-  final Queuer _queuer = Queuer(
-    (args) async {
-      final taskId = args[0] as int;
+  final Queuer<int> _queuer = Queuer<int>(
+    (taskId) async {
       await processTask(taskId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -213,7 +209,7 @@ class _TaskQueueState extends State<TaskQueue> {
         );
       }
     },
-    QueuerOptions(
+    QueuerOptions<int>(
       wait: const Duration(milliseconds: 500),
       maxSize: 10,
       started: true,
@@ -261,13 +257,12 @@ class BatchProcessor extends StatefulWidget {
 }
 
 class _BatchProcessorState extends State<BatchProcessor> {
-  final Batcher _batcher = Batcher(
-    (args) async {
-      final items = args[0] as List;
+  final Batcher<String> _batcher = Batcher<String>(
+    (items) async {
       await processBatch(items);
       debugPrint('Processed batch of ${items.length} items');
     },
-    BatcherOptions(
+    BatcherOptions<String>(
       maxSize: 5,
       wait: const Duration(seconds: 2),
     ),
@@ -308,9 +303,8 @@ class _BatchProcessorState extends State<BatchProcessor> {
 
 ```dart
 class RetryService {
-  final AsyncRetryer _retryer = AsyncRetryer(
-    (args) async {
-      final url = args[0] as String;
+  final AsyncRetryer<String> _retryer = AsyncRetryer<String>(
+    (url) async {
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode != 200) {
@@ -319,7 +313,7 @@ class RetryService {
 
       return response.body;
     },
-    AsyncRetryerOptions(
+    AsyncRetryerOptions<String>(
       maxAttempts: 3,
       backoff: BackoffType.exponential,
       baseWait: const Duration(milliseconds: 500),
@@ -330,7 +324,7 @@ class RetryService {
   );
 
   Future<String> fetchWithRetry(String url) async {
-    return await _retryer.execute([url]);
+    return await _retryer.execute(url);
   }
 }
 ```
@@ -358,19 +352,19 @@ Debouncing delays function execution until after a period of inactivity. Perfect
 
 ```dart
 // Class-based approach
-final debouncer = Debouncer(
-  (args) => performSearch(args[0]),
-  DebouncerOptions(wait: const Duration(milliseconds: 300)),
+final debouncer = Debouncer<String>(
+  (query) => performSearch(query),
+  DebouncerOptions<String>(wait: const Duration(milliseconds: 300)),
 );
 
 // Function-based approach
-final debouncedFn = debounce(
-  (args) => performSearch(args[0]),
-  DebouncerOptions(wait: const Duration(milliseconds: 300)),
+final debouncedFn = debounce<String>(
+  (query) => performSearch(query),
+  DebouncerOptions<String>(wait: const Duration(milliseconds: 300)),
 );
 
 // Usage
-debouncer.maybeExecute(['search query']);
+debouncer.maybeExecute('search query');
 ```
 
 ### Throttling
@@ -378,9 +372,9 @@ debouncer.maybeExecute(['search query']);
 Throttling ensures a function executes at most once within a time window. Great for button clicks and scroll handlers.
 
 ```dart
-final throttler = Throttler(
-  (args) => handleScroll(),
-  ThrottlerOptions(
+final throttler = Throttler<int>(
+  (count) => debugPrint('Throttled: $count'),
+  ThrottlerOptions<int>(
     wait: const Duration(milliseconds: 100),
     leading: true,
     trailing: true,
@@ -388,7 +382,7 @@ final throttler = Throttler(
 );
 
 // Usage
-throttler.maybeExecute([]);
+throttler.maybeExecute(42);
 ```
 
 ### Rate Limiting
@@ -396,9 +390,9 @@ throttler.maybeExecute([]);
 Rate limiting allows a function to execute up to a limit within a time window. Ideal for API rate limiting.
 
 ```dart
-final rateLimiter = RateLimiter(
-  (args) => makeAPICall(),
-  RateLimiterOptions(
+final rateLimiter = RateLimiter<String>(
+  (endpoint) => makeAPICall(endpoint),
+  RateLimiterOptions<String>(
     limit: 5,
     window: const Duration(minutes: 1),
     windowType: WindowType.sliding,
@@ -406,7 +400,7 @@ final rateLimiter = RateLimiter(
 );
 
 // Usage
-if (rateLimiter.maybeExecute([])) {
+if (rateLimiter.maybeExecute('api/endpoint')) {
   // Request allowed
 } else {
   // Rate limit exceeded
@@ -418,9 +412,9 @@ if (rateLimiter.maybeExecute([])) {
 Queuing processes items sequentially with configurable concurrency. Perfect for background task processing.
 
 ```dart
-final queuer = Queuer(
-  (args) => processItem(args[0]),
-  QueuerOptions(
+final queuer = Queuer<String>(
+  (taskData) => processItem(taskData),
+  QueuerOptions<String>(
     wait: const Duration(milliseconds: 500),
     maxSize: 10,
     started: true,
@@ -437,9 +431,9 @@ queuer.start(); // If not auto-started
 Batching groups multiple operations together for efficient processing. Great for bulk operations.
 
 ```dart
-final batcher = Batcher(
-  (args) => processBatch(args[0]),
-  BatcherOptions(maxSize: 10, wait: const Duration(seconds: 1)),
+final batcher = Batcher<String>(
+  (items) => processBatch(items),
+  BatcherOptions<String>(maxSize: 10, wait: const Duration(seconds: 1)),
 );
 
 // Usage
@@ -453,9 +447,9 @@ batcher.addItem('item 2');
 Retrying automatically retries failed operations with configurable backoff strategies.
 
 ```dart
-final retryer = AsyncRetryer(
-  (args) => unreliableAPICall(args[0]),
-  AsyncRetryerOptions(
+final retryer = AsyncRetryer<String>(
+  (params) => unreliableAPICall(params),
+  AsyncRetryerOptions<String>(
     maxAttempts: 3,
     backoff: BackoffType.exponential,
     baseWait: const Duration(milliseconds: 100),
@@ -464,7 +458,7 @@ final retryer = AsyncRetryer(
 
 // Usage
 try {
-  final result = await retryer.execute(['api params']);
+  final result = await retryer.execute('api params');
 } catch (e) {
   // All retries failed
 }
@@ -475,7 +469,7 @@ try {
 All utilities provide reactive state management through ChangeNotifier:
 
 ```dart
-final debouncer = Debouncer(fn, options);
+final debouncer = Debouncer<String>((query) => search(query), DebouncerOptions<String>());
 
 // Listen to state changes
 debouncer.addListener(() {
